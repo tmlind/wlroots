@@ -80,16 +80,37 @@ static bool gles2_texture_write_pixels(struct wlr_texture *wlr_texture,
 
 	glBindTexture(GL_TEXTURE_2D, texture->tex);
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, stride / (drm_fmt->bpp / 8));
-	glPixelStorei(GL_UNPACK_SKIP_PIXELS_EXT, src_x);
-	glPixelStorei(GL_UNPACK_SKIP_ROWS_EXT, src_y);
+	if (texture->renderer->exts.EXT_unpack_subimage) {
+		glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, stride / (drm_fmt->bpp / 8));
+		glPixelStorei(GL_UNPACK_SKIP_PIXELS_EXT, src_x);
+		glPixelStorei(GL_UNPACK_SKIP_ROWS_EXT, src_y);
 
-	glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, width, height,
-		fmt->gl_format, fmt->gl_type, data);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, width, height,
+			fmt->gl_format, fmt->gl_type, data);
 
-	glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, 0);
-	glPixelStorei(GL_UNPACK_SKIP_PIXELS_EXT, 0);
-	glPixelStorei(GL_UNPACK_SKIP_ROWS_EXT, 0);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, 0);
+		glPixelStorei(GL_UNPACK_SKIP_PIXELS_EXT, 0);
+		glPixelStorei(GL_UNPACK_SKIP_ROWS_EXT, 0);
+	} else if (stride == width * drm_fmt->bpp / 8) {
+		const uint8_t *pixels;
+
+		pixels = data;
+		pixels += src_x * drm_fmt->bpp / 8;
+		pixels += src_y * stride;
+		glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y, width, height,
+			fmt->gl_format, fmt->gl_type, pixels);
+	} else {
+		const uint8_t *pixels;
+
+		pixels = data;
+		pixels += src_x * drm_fmt->bpp / 8;
+		pixels += src_y * stride;
+
+		for (size_t y = 0; y < height; ++y, pixels += stride) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, dst_x, dst_y + y, width, 1,
+				fmt->gl_format, fmt->gl_type, pixels);
+		}
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -221,10 +242,26 @@ static struct wlr_texture *gles2_texture_from_pixels(
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, stride / (drm_fmt->bpp / 8));
-	glTexImage2D(GL_TEXTURE_2D, 0, fmt->gl_format, width, height, 0,
-		fmt->gl_format, fmt->gl_type, data);
-	glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, 0);
+
+	if (texture->renderer->exts.EXT_unpack_subimage) {
+		glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, stride / (drm_fmt->bpp / 8));
+		glTexImage2D(GL_TEXTURE_2D, 0, fmt->gl_format, width, height, 0,
+			fmt->gl_format, fmt->gl_type, data);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH_EXT, 0);
+	} else if (stride == width * (drm_fmt->bpp / 8)) {
+		glTexImage2D(GL_TEXTURE_2D, 0, fmt->gl_format, width, height, 0,
+			fmt->gl_format, fmt->gl_type, data);
+	} else {
+		const uint8_t *pixels = data;
+
+		glTexImage2D(GL_TEXTURE_2D, 0, fmt->gl_format, width, height, 0,
+			fmt->gl_format, fmt->gl_type, NULL);
+
+		for (size_t y = 0; y < height; y++, pixels += stride) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y, width, height,
+				fmt->gl_format, fmt->gl_type, pixels);
+		}
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

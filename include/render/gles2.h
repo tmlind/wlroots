@@ -41,6 +41,7 @@ struct wlr_gles2_renderer {
 	const char *exts_str;
 	struct {
 		bool EXT_read_format_bgra;
+		bool EXT_unpack_subimage;
 		bool KHR_debug;
 		bool OES_egl_image_external;
 		bool OES_egl_image;
