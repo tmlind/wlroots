@@ -746,11 +746,6 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 		free(renderer);
 		return NULL;
 	}
-	if (!check_gl_ext(exts_str, "GL_EXT_unpack_subimage")) {
-		wlr_log(WLR_ERROR, "GL_EXT_unpack_subimage not supported");
-		free(renderer);
-		return NULL;
-	}
 
 	renderer->exts.EXT_read_format_bgra =
 		check_gl_ext(exts_str, "GL_EXT_read_format_bgra");
@@ -760,6 +755,9 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 
 	renderer->exts.EXT_texture_type_2_10_10_10_REV =
 		check_gl_ext(exts_str, "GL_EXT_texture_type_2_10_10_10_REV");
+
+	renderer->exts.EXT_unpack_subimage =
+		check_gl_ext(exts_str, "GL_EXT_unpack_subimage");
 
 	renderer->exts.OES_texture_half_float_linear =
 		check_gl_ext(exts_str, "GL_OES_texture_half_float_linear");
