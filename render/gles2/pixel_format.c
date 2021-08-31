@@ -109,7 +109,8 @@ bool is_gles2_pixel_format_supported(const struct wlr_gles2_renderer *renderer,
 		return false;
 	}
 	if (format->gl_format == GL_BGRA_EXT
-			&& !renderer->exts.EXT_read_format_bgra) {
+			&& !(renderer->exts.EXT_read_format_bgra ||
+			renderer->exts.IMG_read_format)) {
 		return false;
 	}
 	return true;

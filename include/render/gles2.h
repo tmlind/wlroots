@@ -46,6 +46,7 @@ struct wlr_gles2_renderer {
 		bool OES_egl_image;
 		bool EXT_texture_type_2_10_10_10_REV;
 		bool OES_texture_half_float_linear;
+		bool IMG_read_format;
 	} exts;
 
 	struct {

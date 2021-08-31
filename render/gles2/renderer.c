@@ -422,7 +422,8 @@ static uint32_t gles2_preferred_read_format(
 		return fmt->drm_format;
 	}
 
-	if (renderer->exts.EXT_read_format_bgra) {
+	if (renderer->exts.EXT_read_format_bgra ||
+			renderer->exts.IMG_read_format) {
 		return DRM_FORMAT_XRGB8888;
 	}
 	return DRM_FORMAT_XBGR8888;
@@ -753,6 +754,9 @@ struct wlr_renderer *wlr_gles2_renderer_create(struct wlr_egl *egl) {
 
 	renderer->exts.EXT_read_format_bgra =
 		check_gl_ext(exts_str, "GL_EXT_read_format_bgra");
+
+	renderer->exts.IMG_read_format =
+		check_gl_ext(exts_str, "GL_IMG_read_format");
 
 	renderer->exts.EXT_texture_type_2_10_10_10_REV =
 		check_gl_ext(exts_str, "GL_EXT_texture_type_2_10_10_10_REV");
