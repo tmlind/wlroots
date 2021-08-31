@@ -184,6 +184,9 @@ static struct wlr_egl *egl_create(void) {
 	egl->exts.KHR_platform_gbm = check_egl_ext(client_exts_str,
 			"EGL_KHR_platform_gbm");
 
+	egl->exts.MESA_platform_gbm = check_egl_ext(client_exts_str,
+			"EGL_MESA_platform_gbm");
+
 	egl->exts.EXT_platform_device = check_egl_ext(client_exts_str,
 			"EGL_EXT_platform_device");
 
@@ -468,7 +471,7 @@ struct wlr_egl *wlr_egl_create_with_drm_fd(int drm_fd) {
 		wlr_log(WLR_DEBUG, "EXT_platform_device not supported");
 	}
 
-	if (egl->exts.KHR_platform_gbm) {
+	if (egl->exts.KHR_platform_gbm || egl->exts.MESA_platform_gbm) {
 		int gbm_fd = open_render_node(drm_fd);
 		if (gbm_fd < 0) {
 			wlr_log(WLR_ERROR, "Failed to open DRM render node");
@@ -483,14 +486,14 @@ struct wlr_egl *wlr_egl_create_with_drm_fd(int drm_fd) {
 		}
 
 		if (egl_init(egl, EGL_PLATFORM_GBM_KHR, egl->gbm_device)) {
-			wlr_log(WLR_DEBUG, "Using EGL_PLATFORM_GBM_KHR");
+			wlr_log(WLR_DEBUG, "Using EGL_PLATFORM_GBM_KHR/EGL_PLATFORM_GBM_MESA");
 			return egl;
 		}
 
 		gbm_device_destroy(egl->gbm_device);
 		close(gbm_fd);
 	} else {
-		wlr_log(WLR_DEBUG, "KHR_platform_gbm not supported");
+		wlr_log(WLR_DEBUG, "KHR_platform_gbm or EGL_MESA_platform_gbm not supported");
 	}
 
 error:

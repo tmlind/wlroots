@@ -48,6 +48,7 @@ struct wlr_egl {
 		// Client extensions
 		bool EXT_device_query;
 		bool KHR_platform_gbm;
+		bool MESA_platform_gbm;
 		bool EXT_platform_device;
 	} exts;
 
