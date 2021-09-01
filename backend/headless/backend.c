@@ -135,12 +135,16 @@ static bool backend_init(struct wlr_headless_backend *backend,
 	} else {
 		backend->parent_renderer = renderer;
 		backend->parent_renderer_destroy.notify = handle_renderer_destroy;
-		wl_signal_add(&renderer->events.destroy, &backend->parent_renderer_destroy);
 	}
 
 	if (backend_get_allocator(&backend->backend) == NULL) {
 		wlr_log(WLR_ERROR, "Failed to create allocator");
 		return false;
+	}
+
+	if (renderer != NULL) {
+		wl_signal_add(&renderer->events.destroy,
+			&backend->parent_renderer_destroy);
 	}
 
 	backend->display_destroy.notify = handle_display_destroy;
