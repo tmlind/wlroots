@@ -205,15 +205,8 @@ struct wlr_drm *wlr_drm_create(struct wl_display *display,
 		return NULL;
 	}
 
-	char *node_name = NULL;
-	if (dev->available_nodes & (1 << DRM_NODE_RENDER)) {
-		node_name = strdup(dev->nodes[DRM_NODE_RENDER]);
-	} else {
-		assert(dev->available_nodes & (1 << DRM_NODE_PRIMARY));
-		wlr_log(WLR_DEBUG, "No DRM render node available, "
-			"falling back to primary node '%s'", dev->nodes[DRM_NODE_PRIMARY]);
-		node_name = strdup(dev->nodes[DRM_NODE_PRIMARY]);
-	}
+	assert(dev->available_nodes & (1 << DRM_NODE_PRIMARY));
+	char *node_name = strdup(dev->nodes[DRM_NODE_PRIMARY]);
 	drmFreeDevice(&dev);
 	if (node_name == NULL) {
 		return NULL;
